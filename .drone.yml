@@ -1,0 +1,47 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+trigger:
+  event:
+    - push
+
+steps:
+  - name: test I
+    image: alpine
+    commands:
+      - exit 0
+
+  - name: test II
+    image: alpine
+    commands:
+      - exit 1
+
+---
+kind: pipeline
+type: docker
+name: notifications
+
+trigger:
+  event:
+    - push
+  status:
+    - success
+    - failure
+
+steps:
+  - name: feishu
+    image: drizztdoud/drone-feishu:1.0.0
+    environment:
+      TZ: Asia/Shanghai
+    settings:
+      webhook:
+        from_secret: feishu_webhook
+    when:
+      status:
+        - failure
+        - success
+
+depends_on:
+  - default
