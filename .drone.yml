@@ -36,6 +36,7 @@ steps:
     environment:
       TZ: Asia/Shanghai
     settings:
+      debug: true
       webhook:
         from_secret: feishu_webhook
       message: {
