@@ -1,78 +1,20 @@
 ---
 kind: pipeline
 type: docker
-name: default
-
-trigger:
-  event:
-    - push
+name: deploy
 
 steps:
-  - name: test I
+  - name: staging
     image: alpine
     commands:
-      - exit 0
+      - echo "staging"
 
-  - name: test II
+  - name: production
     image: alpine
     commands:
-      - exit 1
-
----
-kind: pipeline
-type: docker
-name: notifications
-
-trigger:
-  event:
-    - push
-  status:
-    - success
-    - failure
-
-steps:
-  - name: feishu
-    image: drizztdoud/drone-feishu:1.0.0
-    environment:
-      TZ: Asia/Shanghai
-    settings:
-      debug: true
-      webhook:
-        from_secret: feishu_webhook
-      message: {
-        "msg_type":"interactive",
-        "card":{
-          "config":{
-            "wide_screen_mode":true,
-            "enable_forward":true
-          },
-          "header":{
-            "title":{
-              "tag":"plain_text",
-              "content":"Test - {{ Repo.FullName }}"
-            }
-          },
-          "elements":[
-            {
-              "tag":"markdown",
-              "content":"{{#success Build.Status }}✅{{/success}}{{#failure Build.Status}}❌{{/failure}} Build [#{{ Build.Number }}]({{ Build.Link }}) {{ Build.Status }}.\n📝 Commit by {{ Commit.AuthorName }} on {{ Commit.Branch }}:\n**{{ Commit.Message }}**"
-            },
-            {
-              "tag":"note",
-              "elements":[
-                {
-                  "tag":"plain_text",
-                  "content":"@{{ datetime Build.Started '2006-01-02 15:04:05' '' }} to @{{ datetime Build.Finished '2006-01-02 15:04:05' '' }}."
-                }
-              ]
-            }
-          ]
-        }
-      }
+      - echo "production"
     when:
-      status:
-        - failure
-        - success
-
-depends_on:
-  - default
+      event:
+      - promote
+      target:
+      - production
